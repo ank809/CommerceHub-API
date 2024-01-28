@@ -1,3 +1,4 @@
+from app import mongo
 import re
 def isValidEmail(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -15,3 +16,10 @@ def isValidPassword(password):
         return True
     else:
         return False
+    
+def get_role(identity):
+    user= mongo.db.users.find_one({"name":identity})
+    if user is None:
+        return "Seller"
+    else:
+        return "User"

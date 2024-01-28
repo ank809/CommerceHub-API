@@ -1,6 +1,7 @@
 from app import app, request, mongo, jsonify
 from app.functions import isValidEmail, isValidPassword
 from app.models import User, Sellers
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, jwt_required
 
 @app.route('/')
 def hello():
@@ -52,3 +53,48 @@ def register_seller():
         'password':seller.password
     })
     return jsonify({'success':"Account Successfully created"}),200
+
+
+@app.route('/login_user', methods=['POST'])
+def user_login():
+    name= request.json['name']
+    password=request.json['password']
+    user=mongo.db.users.find_one({"name":name})
+    if user and user['password']==password:
+        access_token= create_access_token(identity=name)
+        refresh_token= create_refresh_token(identity=name)
+        return jsonify({
+            "success":"Successfully logged in",
+            "name":name,
+            "access_token":access_token,
+            "refresh_token":refresh_token
+        }),200
+    else:
+        return jsonify({"Error":"Invalid credentials"}),401
+    
+
+@app.route('/login_seller', methods=['POST'])
+def seller_login():
+    name= request.json['name']
+    password=request.json['password']
+    seller=mongo.db.sellers.find_one({"name":name})
+    if seller and seller['password']==password:
+        access_token= create_access_token(identity=name)
+        refresh_token= create_refresh_token(identity=name)
+        return jsonify({
+            "success":"Successfully logged in",
+            "name":name,
+            "access_token":access_token,
+            "refresh_token":refresh_token
+        }),200
+    else:
+        return jsonify({"Error":"Invalid credentials"}),401
+    
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    identity=get_jwt()
+    jti= identity['jti']
+    mongo.db.revoked_tokens.insert_one({"jti":jti})
+    return jsonify({"Success": "Logout Successfully"})
+
