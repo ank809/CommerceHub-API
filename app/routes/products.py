@@ -3,9 +3,24 @@ from app.models import Product
 from app.functions import get_role
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
-@app.route('/get_products')
+@app.route('/get_products', methods=['GET'])
 def get_products():
-    pass
+    total_products=[]
+    products=mongo.db.products.find()
+    for product in products:
+        pro={
+            "product_id":product["product_id"],
+            "name":product['name'],
+            "description":product['description'],
+            "brand":product['brand'],
+            "category":product['category'],
+            "price":product['price'],
+            "seller_id":product['seller_id'],
+            "color":product['color'],
+            "size":product['size']
+        }
+        total_products.append(pro)
+    return jsonify(total_products)
 
 
 @app.route('/add_products', methods=['POST'])
@@ -29,6 +44,19 @@ def add_products():
     else:
         return jsonify({"Error":"You are not authorized to access this route"})
 
+
+@app.route('/add_to_cart', methods=['POST'])
+@jwt_required()
+def add_to_cart():
+    user=get_jwt_identity()
+    product_id= request.json['product_id']
+    quantity=request.json['quantity']
+    product= mongo.db.products.find_one({"product_id":product_id})
+    if product and quantity:
+        mongo.db.cart_item.insert_one({"user":user, "product_id":product_id, "quantity":quantity})
+        return jsonify({"Success": "Item added to cart"})
+    else:
+        return jsonify({"Error":"Give product id and quantity"})
 
 
 @app.route('/whoami', methods=['GET'])

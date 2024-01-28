@@ -12,7 +12,8 @@ class Sellers:
         self.password=password
 
 class Product:
-    def __init__(self, name, description, brand, category, price,seller_id, color, size):
+    def __init__(self,product_id,  name, description, brand, category, price,seller_id, color, size):
+        self.product_id=product_id
         self.name = name
         self.description = description
         self.brand = brand
