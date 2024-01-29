@@ -1,7 +1,7 @@
 from app import app, request, mongo, jsonify
 from app.functions import isValidEmail, isValidPassword
 from app.models import User, Sellers
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, jwt_required
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, jwt_required, get_jwt_identity
 
 @app.route('/')
 def hello():
@@ -98,3 +98,9 @@ def logout():
     mongo.db.revoked_tokens.insert_one({"jti":jti})
     return jsonify({"Success": "Logout Successfully"})
 
+@app.route("/refresh_token", methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    identity= get_jwt_identity()
+    access_token= create_access_token(identity=identity)
+    return jsonify({"Success":"New token allocated", "Access_token":access_token, "Identity":identity}),200

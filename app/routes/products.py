@@ -37,7 +37,8 @@ def add_products():
         seller_id= request.json['seller_id']
         color= request.json['color']
         size=request.json['size']
-        product= Product(name=name, description=description, brand=brand, category=category,price=price, seller_id=seller_id, size=size, color=color)
+        product_id=request.json['product_id']
+        product= Product(name=name, description=description, brand=brand, category=category,price=price, seller_id=seller_id, size=size, color=color, product_id=product_id)
         product_data= product.to_dict()
         mongo.db.products.insert_one(product_data)
         return jsonify({"success":"Product added"}),200
@@ -51,12 +52,54 @@ def add_to_cart():
     user=get_jwt_identity()
     product_id= request.json['product_id']
     quantity=request.json['quantity']
+    user_collection= f"{user}_cart"
     product= mongo.db.products.find_one({"product_id":product_id})
     if product and quantity:
-        mongo.db.cart_item.insert_one({"user":user, "product_id":product_id, "quantity":quantity})
+        mongo.db[user_collection].insert_one({"user":user, "product_id":product_id, "quantity":quantity})
         return jsonify({"Success": "Item added to cart"})
     else:
         return jsonify({"Error":"Give product id and quantity"})
+
+
+@app.route('/get_cart_products', methods=['GET'])
+@jwt_required()
+def get_cart_products():
+    cart=[]
+    user= get_jwt_identity()
+    collection=f"{user}_cart"
+    cart_items=mongo.db[collection].find()
+    for item in cart_items:
+        product_id= item['product_id']
+        product= mongo.db.products.find_one({"product_id":product_id})
+        if product:
+            cartItems={
+                'name':product['name'],
+                'description':product['description'],
+                'brand':product['brand'],
+                'category':product['category'],
+                'price':product['price'],
+                'seller_id':product['seller_id'],
+                'color':product['color'],
+                'size':product['size'],
+                'product_id':product['product_id']
+            }
+        else:
+            return jsonify({"Error":"Product not available"})
+        cart.append(cartItems)
+    return jsonify(cart)
+
+@app.route('/remove_from_cart', methods=['DELETE'])
+@jwt_required()
+def remove_from_cart():
+    product_id=request.json['product_id']
+    identity= get_jwt_identity()
+    collection =f"{identity}_cart"
+    product= mongo.db[collection].find_one({"product_id":product_id})
+    if product:
+        mongo.db[collection].delete_one({"product_id":product_id})
+        return jsonify({"Success": "Product successfully removed from cart"}), 200
+    else:
+        return jsonify({"Error":"Product not found"}),401
 
 
 @app.route('/whoami', methods=['GET'])

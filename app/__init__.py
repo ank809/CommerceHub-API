@@ -38,4 +38,5 @@ def revoked_token_callback(jwt_header, jwt_data):
         "error":"token has been revoked"
     }
 
+
 from app.routes import auth, products

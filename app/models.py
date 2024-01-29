@@ -32,7 +32,8 @@ class Product:
             "price": self.price,
             "seller_id": self.seller_id,
             "size": self.size,
-            "color": self.color
+            "color": self.color,
+            "product_id":self.product_id
         }
 
 
