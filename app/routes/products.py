@@ -100,6 +100,14 @@ def remove_from_cart():
         return jsonify({"Success": "Product successfully removed from cart"}), 200
     else:
         return jsonify({"Error":"Product not found"}),401
+    
+@app.route('/clear_cart', methods=['DELETE'])
+@jwt_required()
+def clear_cart():
+    identity= get_jwt_identity()
+    collection= f'{identity}_cart'
+    mongo.db[collection].drop()
+    return jsonify({"Success":"All items removed from cart"})
 
 
 @app.route('/whoami', methods=['GET'])
