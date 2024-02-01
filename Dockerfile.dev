@@ -1,0 +1,14 @@
+FROM python:3.13.0a3-alpine3.19
+
+WORKDIR /app
+
+COPY . .
+
+RUN apk update && \
+    apk add --no-cache python3-dev py3-pip && \
+    pip3 install --upgrade pip && \
+    pip3 install flask flask-pymongo Flask-JWT-Extended
+
+# EXPOSE 5000
+
+CMD [ "python3", "run.py" ]
