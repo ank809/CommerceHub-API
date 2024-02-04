@@ -1,0 +1,26 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t <YOUR DOCKERHUB USERNAME>/<IMAGE NAME> -f Dockerfile.dev .
+
+script:
+  - docker run -e CI=true <YOUR DOCKERHUB USERNAME>/<IMAGE NAME> <TEST OR RUN COMMAND>
+
+# using this -e CI=true, it will exit with a status code of 0, if all tests are passed
+
+
+# This part will start deploy your code whenever you push your code to master branch
+# after testing it
+deploy:
+  provider: elasticbeanstalk
+  region: "ap-south-1"   # change according to your region
+  app: "docker-reactapp" # change according to your beanstalk app name
+  env: "Docker-reactapp-env" # change according to your env name
+  bucket_name: <YOUR BUCKET NAME>
+  bucket_path: <YOUR BUCKET PATH>
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY  # set in the travis CI
+  secret_access_key: "$AWS_SECRET_KEY"  # set in the travis CI
